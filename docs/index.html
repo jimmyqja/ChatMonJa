@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Download ChatMonJA, a friendly Twitch chat welcome and community bot for macOS and Windows 11.">
+  <title>ChatMonJA — Twitch Chat Welcome Bot</title>
+  <link rel="icon" type="image/png" href="assets/chatmonja-icon.png">
+  <link rel="apple-touch-icon" href="assets/chatmonja-icon.png">
+  <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
+</head>
+<body>
+  <main>
+    <section class="hero">
+      <nav class="topbar" aria-label="Main navigation">
+        <a class="brand" href="index.html">
+          <img class="brand-mark" src="assets/chatmonja-icon.png" alt="">
+          <span>ChatMonJA</span>
+        </a>
+        <div class="nav-links">
+          <a href="index.html#download">Download</a>
+          <a href="faq.html">FAQ</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </nav>
+
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">Twitch welcome bot · free preview release</p>
+          <h1>Welcome your Twitch chat with good vibes.</h1>
+          <p class="lead">
+            ChatMonJA automatically joins your Twitch chat after login, greets viewers,
+            runs custom commands, and keeps your settings local on your computer.
+          </p>
+          <div class="hero-actions" id="download">
+            <a class="button primary" href="https://github.com/jimmyqja/ChatMonJA/releases/download/v1.3.3/ChatMonJA-1.3.3-mac-arm64-unsigned.dmg">
+              Download for macOS
+            </a>
+            <a class="button secondary" href="https://github.com/jimmyqja/ChatMonJA/releases/download/v1.3.3/ChatMonJA-1.3.3-windows-x64-unsigned.zip">
+              Download for Windows 11
+            </a>
+          </div>
+          <p class="fine-print">
+            Current version: <strong>1.3.3</strong>. These preview builds are unsigned, so macOS or Windows may show a security warning.
+          </p>
+          <p class="download-stat" data-release-counter>
+            <strong id="download-count" aria-live="polite">Loading…</strong>
+            <span id="download-count-label">total downloads</span>
+          </p>
+        </div>
+
+        <div class="app-card" aria-label="ChatMonJA feature preview">
+          <div class="window-dots" aria-hidden="true"><span></span><span></span><span></span></div>
+          <div class="app-card-heading">
+            <img class="app-logo" src="assets/chatmonja-icon.png" alt="ChatMonJA app logo">
+            <div>
+              <h2>ChatMonJA</h2>
+              <p class="status">Logged in · Bot active</p>
+            </div>
+          </div>
+          <div class="preview-line">Bless up viewer123, welcome in! Happy Tuesday.</div>
+          <div class="preview-line">!list → Available commands: !list, !rules, !socials</div>
+          <div class="preview-pill-row">
+            <span>10 greeting presets</span>
+            <span>Custom commands</span>
+            <span>Local backups</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section install">
+      <div>
+        <p class="eyebrow">Quick start</p>
+        <h2>Install and go live in minutes.</h2>
+      </div>
+      <div class="steps">
+        <article>
+          <span class="step-number">1</span>
+          <h3>Download</h3>
+          <p>Choose the Mac DMG or Windows 11 ZIP above.</p>
+        </article>
+        <article>
+          <span class="step-number">2</span>
+          <h3>Log in with Twitch</h3>
+          <p>ChatMonJA uses Twitch’s device-code login. No password entry inside the app.</p>
+        </article>
+        <article>
+          <span class="step-number">3</span>
+          <h3>Customize</h3>
+          <p>Edit greetings, add commands, set special users, and start welcoming chat.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="features">
+      <p class="eyebrow">What it does</p>
+      <h2>Built for streamers who want a warm chat without babysitting a bot.</h2>
+      <div class="feature-grid">
+        <article>
+          <h3>Automatic greetings</h3>
+          <p>Welcome each viewer once per session with rotating Jamaican-style preset greetings.</p>
+        </article>
+        <article>
+          <h3>Custom !commands</h3>
+          <p>Add commands like <code>!socials</code>, <code>!rules</code>, and the default <code>!list</code>.</p>
+        </article>
+        <article>
+          <h3>Role controls</h3>
+          <p>Choose whether everyone, moderators, or the broadcaster can use each command.</p>
+        </article>
+        <article>
+          <h3>Special users</h3>
+          <p>Create custom greetings for regulars, collaborators, and community favorites.</p>
+        </article>
+        <article>
+          <h3>Local backups</h3>
+          <p>Save and restore your greetings, commands, themes, and ignored-bot list.</p>
+        </article>
+        <article>
+          <h3>No ads or telemetry</h3>
+          <p>This release does not include analytics, advertising, or remote crash reporting.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section privacy" id="privacy">
+      <div>
+        <p class="eyebrow">Privacy first</p>
+        <h2>Your bot settings stay on your computer.</h2>
+      </div>
+      <p>
+        ChatMonJA stores Twitch login tokens, greetings, commands, backups, and settings locally.
+        Authentication tokens are not included in backups. Twitch chat traffic is sent directly to Twitch.
+      </p>
+      <a class="text-link" href="privacy.html">Read the full privacy policy</a>
+    </section>
+
+    <section class="section notes">
+      <h2>Preview release notes</h2>
+      <div class="note-grid">
+        <article>
+          <h3>macOS</h3>
+          <p>If macOS blocks the unsigned preview app, right-click ChatMonJA and choose Open.</p>
+        </article>
+        <article>
+          <h3>Windows 11</h3>
+          <p>If SmartScreen appears, choose More info, then Run anyway. Signed builds are planned later.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <a class="contact-bubble" href="mailto:support@chatmonja.com" aria-label="Contact ChatMonJA support">Contact us</a>
+
+  <footer>
+    <div class="footer-links" aria-label="Website links">
+      <a href="privacy.html">Privacy</a>
+      <a href="faq.html">FAQ</a>
+      <a href="terms.html">Terms</a>
+      <a href="contact.html">Contact</a>
+    </div>
+    <p>Created by Elmore “JimmyQ” Jamieson · <a href="mailto:support@chatmonja.com">support@chatmonja.com</a></p>
+  </footer>
+</body>
+</html>

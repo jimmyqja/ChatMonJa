@@ -1,0 +1,14 @@
+node_modules/
+out/
+build/icon-source.png
+build/icon.iconset/
+build/icon.icns
+.env
+/auth.json
+backups/
+data/
+data-*/
+.DS_Store
+
+main-v*.js
+index-v*.html
