@@ -8,6 +8,7 @@
     "start": "electron .",
     "test": "node --test",
     "check": "node --check main.js && node --check preload.js && node --check docs/site.js && node --check scripts/create-icns.js && node --check scripts/create-ico.js && node --check scripts/verify-package.js && zsh -n scripts/package-macos.sh scripts/notarize-macos.sh && npm test",
+    "check:windows": "node --check main.js && node --check preload.js && node --check docs/site.js && node --check scripts/create-icns.js && node --check scripts/create-ico.js && node --check scripts/verify-package.js && npm test",
     "icon": "node scripts/create-icns.js",
     "icon:win": "node scripts/create-ico.js",
     "package:mac": "npm run icon && zsh scripts/package-macos.sh",
