@@ -18,6 +18,7 @@ npx --yes @electron/packager@latest . ChatMonJA `
   --out=out `
   --overwrite `
   --prune=true `
+  --no-asar `
   --icon=build/icon.ico `
   --app-version=$Version `
   --build-version=$Version `
@@ -25,8 +26,19 @@ npx --yes @electron/packager@latest . ChatMonJA `
   --win32metadata.FileDescription="ChatMonJA Twitch welcome and community bot" `
   --win32metadata.ProductName="ChatMonJA" `
   --ignore="^/(out|outputs|data|backups|test|\.git|ChatMonJA-Release|\.env|auth\.json)($|/)"
+if ($LASTEXITCODE -ne 0) { throw "Electron Packager failed with exit code $LASTEXITCODE." }
 
-node scripts/verify-package.js "$PackageDir/resources/app"
+$ResourcesApp = Join-Path $PackageDir "resources/app"
+if (-not (Test-Path $ResourcesApp)) {
+  throw "Packaged app resources folder is missing: $ResourcesApp"
+}
+
+$PackagedAssets = Join-Path $ResourcesApp "assets"
+if (Test-Path $PackagedAssets) { Remove-Item $PackagedAssets -Recurse -Force }
+Copy-Item (Join-Path $Root "assets") $PackagedAssets -Recurse -Force
+
+node scripts/verify-package.js $ResourcesApp
+if ($LASTEXITCODE -ne 0) { throw "Package verification failed with exit code $LASTEXITCODE." }
 
 if (Test-Path $Zip) { Remove-Item $Zip -Force }
 Compress-Archive -Path "$PackageDir/*" -DestinationPath $Zip -CompressionLevel Optimal
