@@ -24,12 +24,16 @@ test("creator attribution is present", () => {
 test("the app logo is packaged and used by the application window", () => {
   const main = fs.readFileSync("main.js", "utf8");
   const macPackaging = fs.readFileSync("scripts/package-macos.sh", "utf8");
+  const windowsPackaging = fs.readFileSync("scripts/package-windows.ps1", "utf8");
 
   assert.ok(fs.existsSync("assets/chatmonja-icon.png"));
   assert.match(main, /APP_ICON_PATH/);
   assert.match(main, /icon: APP_ICON_PATH/);
   assert.match(main, /app\.dock\.setIcon\(APP_ICON_PATH\)/);
   assert.match(macPackaging, /ditto "\$ROOT\/assets" "\$APP_RESOURCES\/assets"/);
+  assert.match(windowsPackaging, /--no-asar/);
+  assert.match(windowsPackaging, /Copy-Item \(Join-Path \$Root "assets"\)/);
+  assert.match(windowsPackaging, /Package verification failed/);
 });
 
 test("1.2.1 performs a one-time cleanup of pre-release personal data", () => {
