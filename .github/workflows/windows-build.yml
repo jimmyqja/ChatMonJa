@@ -9,7 +9,7 @@ on:
       - "v*"
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-windows:
@@ -36,6 +36,20 @@ jobs:
       - name: Build Windows package
         run: npm run package:win
 
+      - name: Verify Windows package
+        shell: pwsh
+        run: |
+          $zip = Get-ChildItem "out/ChatMonJA-*-windows-x64-unsigned.zip" | Select-Object -First 1
+          if (-not $zip) { throw "Windows ZIP was not created." }
+          $verifyDir = Join-Path $env:RUNNER_TEMP "chatmonja-verify"
+          Expand-Archive -Path $zip.FullName -DestinationPath $verifyDir -Force
+          if (-not (Test-Path (Join-Path $verifyDir "ChatMonJA.exe"))) {
+            throw "ChatMonJA.exe is missing from the Windows ZIP."
+          }
+          if (-not (Test-Path (Join-Path $verifyDir "resources/app/assets/chatmonja-icon.png"))) {
+            throw "The ChatMonJA logo is missing from the Windows package."
+          }
+
       - name: Upload Windows ZIP
         uses: actions/upload-artifact@v4
         with:
@@ -43,3 +57,12 @@ jobs:
           path: out/ChatMonJA-*-windows-x64-unsigned.zip
           if-no-files-found: error
           retention-days: 14
+
+      - name: Replace Windows release asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $version = node -p "require('./package.json').version"
+          $zip = Get-ChildItem "out/ChatMonJA-*-windows-x64-unsigned.zip" | Select-Object -First 1
+          gh release upload "v$version" $zip.FullName --clobber --repo $env:GITHUB_REPOSITORY
