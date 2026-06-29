@@ -65,4 +65,9 @@ jobs:
         run: |
           $version = node -p "require('./package.json').version"
           $zip = Get-ChildItem "out/ChatMonJA-*-windows-x64-unsigned.zip" | Select-Object -First 1
+          gh release view "v$version" --repo $env:GITHUB_REPOSITORY
+          if ($LASTEXITCODE -ne 0) {
+            gh release create "v$version" --target $env:GITHUB_SHA --title "ChatMonJA $version" --notes "ChatMonJA $version tester release." --prerelease --repo $env:GITHUB_REPOSITORY
+            if ($LASTEXITCODE -ne 0) { throw "Could not create release v$version." }
+          }
           gh release upload "v$version" $zip.FullName --clobber --repo $env:GITHUB_REPOSITORY
