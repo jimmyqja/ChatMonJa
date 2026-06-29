@@ -4,13 +4,15 @@ const crypto = require("crypto");
 const fs = require("fs");
 const path = require("path");
 const {
+  compareVersions,
   createCommandRecord,
   formatCommandResponse,
   formatGreeting,
   hasCommandPermission,
   normalizeCommandRoles,
   normalizeTwitchUsername,
-  parseCommandMessage
+  parseCommandMessage,
+  selectUpdateAsset
 } = require("./lib/core");
 const { validateToken } = require("./lib/twitch-auth");
 
@@ -24,11 +26,14 @@ if (!hasSingleInstanceLock) {
 // Public application metadata from the ChatMonJA Twitch Developer application.
 // This identifies ChatMonJA; it is not a user credential or secret.
 const TWITCH_CLIENT_ID = "pe8dpqhgroa9dcx2gnonhaj6tyjw1z";
-const TWITCH_SCOPES = ["chat:read", "chat:edit"];
+const REQUIRED_CHAT_SCOPES = ["chat:read", "chat:edit"];
+const RAID_SCOPE = "channel:manage:raids";
+const TWITCH_SCOPES = [...REQUIRED_CHAT_SCOPES, RAID_SCOPE];
 const DEVICE_GRANT_TYPE = "urn:ietf:params:oauth:grant-type:device_code";
 const TOKEN_VALIDATION_INTERVAL_MS = 60 * 60 * 1000;
 const TOKEN_REFRESH_WINDOW_MS = 65 * 60 * 1000;
 const APP_ICON_PATH = path.join(__dirname, "assets", "chatmonja-icon.png");
+const GITHUB_RELEASES_API = "https://api.github.com/repos/jimmyqja/ChatMonJa/releases?per_page=10";
 const DEFAULT_GREETINGS = Object.freeze([
   "Bless up ${username}, welcome in! Happy ${dayName}.",
   "Big up ${username}! Good vibes only this ${dayName}.",
@@ -74,12 +79,15 @@ let dayThemesPath;
 let ignoredBotsPath;
 let authPath;
 let releaseStatePath;
+let raidSettingsPath;
 let greetings;
 let commands;
 let specialUsers;
 let dayThemes;
 let ignoredBots;
 let auth;
+let raidSettings;
+let latestUpdate;
 
 function ensureFolder(folderPath) {
   if (!fs.existsSync(folderPath)) {
@@ -126,6 +134,10 @@ function getDefaultGreetings() {
 
 function getDefaultListCommand() {
   return createCommandRecord(DEFAULT_LIST_COMMAND, DEFAULT_LIST_COMMAND.id);
+}
+
+function getDefaultRaidSettings() {
+  return { defaultChannel: "" };
 }
 
 function applyShareDataReset() {
@@ -199,6 +211,7 @@ function initializeStorage() {
   ignoredBotsPath = path.join(dataPath, "ignoredBots.json");
   authPath = path.join(dataPath, "auth.json");
   releaseStatePath = path.join(dataPath, "releaseState.json");
+  raidSettingsPath = path.join(dataPath, "raidSettings.json");
 
   migrateLegacyFolder(legacyDataPath, dataPath);
   migrateLegacyFolder(legacyBackupsPath, backupsPath);
@@ -222,6 +235,9 @@ function initializeStorage() {
     "fossabot", "pretzelrocks", "soundalerts", "cloudbot", "scorpbot",
     "mixitupbot", "snazbot", "twitchbot", "streamlabs", "botisimo"
   ]);
+  raidSettings = loadJsonFile(raidSettingsPath, getDefaultRaidSettings());
+  raidSettings.defaultChannel = normalizeTwitchUsername(raidSettings.defaultChannel);
+  saveJsonFile(raidSettingsPath, raidSettings);
   applyShareDataReset();
   applyDefaultGreetingPresets();
   applyDefaultListCommand();
@@ -236,6 +252,7 @@ function refreshAllLists() {
   mainWindow.webContents.send("special-users-list", specialUsers);
   mainWindow.webContents.send("day-themes-list", dayThemes);
   mainWindow.webContents.send("ignored-bots-list", ignoredBots);
+  mainWindow.webContents.send("raid-settings", raidSettings);
   mainWindow.webContents.send("backup-list", getBackupFiles());
   mainWindow.webContents.send("auth-status", {
     loggedIn: auth.loggedIn,
@@ -280,6 +297,7 @@ function createWindow() {
 
   mainWindow.webContents.on("did-finish-load", async () => {
     refreshAllLists();
+    setTimeout(() => checkForUpdates(false), 1500);
 
     if (auth.loggedIn) {
       await startBot();
@@ -301,6 +319,7 @@ function status(message) {
 
 function emptyAuth() {
   return {
+    userId: "",
     username: "",
     channelName: "",
     accessToken: "",
@@ -320,6 +339,7 @@ function loadAuthFile() {
       );
       const tokens = JSON.parse(decrypted);
       return {
+        userId: stored.userId || "",
         username: stored.username || "",
         channelName: stored.channelName || "",
         accessToken: tokens.accessToken || "",
@@ -333,6 +353,7 @@ function loadAuthFile() {
   }
 
   return {
+    userId: stored.userId || "",
     username: stored.username || "",
     channelName: stored.channelName || "",
     accessToken: stored.accessToken || "",
@@ -344,6 +365,7 @@ function loadAuthFile() {
 
 function saveAuthFile() {
   const stored = {
+    userId: auth.userId,
     username: auth.username,
     channelName: auth.channelName,
     expiresAt: auth.expiresAt,
@@ -377,8 +399,12 @@ function wait(milliseconds) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-async function getTwitchUser(accessToken, clientId) {
-  const response = await fetch("https://api.twitch.tv/helix/users", {
+async function getTwitchUser(accessToken, clientId, login = "") {
+  const url = new URL("https://api.twitch.tv/helix/users");
+  const normalizedLogin = normalizeTwitchUsername(login);
+  if (normalizedLogin) url.searchParams.set("login", normalizedLogin);
+
+  const response = await fetch(url, {
     headers: {
       "Authorization": `Bearer ${accessToken}`,
       "Client-Id": clientId
@@ -396,6 +422,18 @@ async function getTwitchUser(accessToken, clientId) {
   }
 
   return data.data[0];
+}
+
+async function ensureAuthUserId() {
+  if (auth.userId) return auth.userId;
+
+  const twitchUser = await getTwitchUser(auth.accessToken, TWITCH_CLIENT_ID);
+  auth.userId = twitchUser.id || "";
+  auth.username = twitchUser.login || auth.username;
+  auth.channelName = auth.channelName || twitchUser.login || auth.username;
+  saveAuthFile();
+
+  return auth.userId;
 }
 
 async function requestDeviceAuthorization() {
@@ -480,6 +518,7 @@ async function loginWithTwitchDeviceCode() {
     const twitchUser = await getTwitchUser(token.access_token, TWITCH_CLIENT_ID);
 
     auth = {
+      userId: twitchUser.id || "",
       username: twitchUser.login,
       channelName: twitchUser.login,
       accessToken: token.access_token,
@@ -553,7 +592,7 @@ async function ensureValidTwitchSession() {
 
   try {
     const validation = await validateToken(auth.accessToken, TWITCH_CLIENT_ID);
-    const missingScope = TWITCH_SCOPES.find(scope => !validation.scopes?.includes(scope));
+    const missingScope = REQUIRED_CHAT_SCOPES.find(scope => !validation.scopes?.includes(scope));
 
     if (missingScope) {
       throw new Error(`Twitch login is missing the ${missingScope} permission.`);
@@ -679,6 +718,165 @@ function formatAvailableCommandList(tags = {}, username = "", channelName = "") 
   return names.length ? names.join(", ") : "No commands available right now.";
 }
 
+function sendUpdateStatus(payload) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send("update-status", {
+      currentVersion: app.getVersion(),
+      ...payload
+    });
+  }
+}
+
+async function checkForUpdates(manual = false) {
+  sendUpdateStatus({
+    state: "checking",
+    message: "Checking for updates..."
+  });
+
+  try {
+    const response = await fetch(GITHUB_RELEASES_API, {
+      headers: {
+        "Accept": "application/vnd.github+json",
+        "User-Agent": `ChatMonJA/${app.getVersion()}`
+      }
+    });
+
+    if (!response.ok) {
+      throw new Error(`GitHub returned ${response.status}.`);
+    }
+
+    const releases = await response.json();
+    const latestRelease = Array.isArray(releases)
+      ? releases.find(release => !release.draft)
+      : null;
+
+    if (!latestRelease) {
+      latestUpdate = null;
+      sendUpdateStatus({
+        state: "up-to-date",
+        message: "No published updates were found."
+      });
+      return;
+    }
+
+    const latestVersion = String(latestRelease.tag_name || latestRelease.name || "")
+      .replace(/^v/i, "");
+    const asset = selectUpdateAsset(latestRelease.assets, process.platform);
+    const isNewer = compareVersions(latestVersion, app.getVersion()) > 0;
+
+    latestUpdate = {
+      latestVersion,
+      assetName: asset?.name || "",
+      downloadUrl: asset?.browser_download_url || latestRelease.html_url,
+      releaseUrl: latestRelease.html_url
+    };
+
+    if (!isNewer) {
+      sendUpdateStatus({
+        state: "up-to-date",
+        latestVersion,
+        releaseUrl: latestRelease.html_url,
+        message: `You are on the latest version (${app.getVersion()}).`
+      });
+      return;
+    }
+
+    sendUpdateStatus({
+      state: "available",
+      latestVersion,
+      assetName: latestUpdate.assetName,
+      downloadUrl: latestUpdate.downloadUrl,
+      releaseUrl: latestUpdate.releaseUrl,
+      message: `ChatMonJA ${latestVersion} is available.`
+    });
+    if (manual) log(`Update available: ChatMonJA ${latestVersion}.`);
+  } catch (error) {
+    sendUpdateStatus({
+      state: "error",
+      message: `Could not check for updates: ${error.message}`
+    });
+    if (manual) log(`Update check failed: ${error.message}`);
+  }
+}
+
+async function ensureRaidScope() {
+  try {
+    const validation = await validateToken(auth.accessToken, TWITCH_CLIENT_ID);
+    if (validation.scopes?.includes(RAID_SCOPE)) return true;
+  } catch (error) {
+    if (error.status === 401 && auth.refreshToken) {
+      if (await refreshAccessTokenIfNeeded(true)) {
+        const validation = await validateToken(auth.accessToken, TWITCH_CLIENT_ID);
+        if (validation.scopes?.includes(RAID_SCOPE)) return true;
+      }
+    } else {
+      throw error;
+    }
+  }
+
+  log("Raid Out needs one extra Twitch permission. Log out, then log in again to enable raids.");
+  return false;
+}
+
+async function startRaid(targetChannel) {
+  const toChannel = normalizeTwitchUsername(targetChannel);
+
+  if (!toChannel) {
+    log("Enter a valid Twitch channel name to raid.");
+    return;
+  }
+
+  if (!auth.loggedIn || !auth.accessToken) {
+    log("Log in with Twitch before starting a raid.");
+    return;
+  }
+
+  const fromChannel = normalizeTwitchUsername(auth.channelName || auth.username);
+  if (toChannel === fromChannel) {
+    log("Choose another channel to raid.");
+    return;
+  }
+
+  if (!(await ensureValidTwitchSession())) {
+    log("Your Twitch login expired. Log in again before starting a raid.");
+    return;
+  }
+
+  if (!(await ensureRaidScope())) return;
+
+  try {
+    const fromBroadcasterId = await ensureAuthUserId();
+    const targetUser = await getTwitchUser(auth.accessToken, TWITCH_CLIENT_ID, toChannel);
+    const toBroadcasterId = targetUser.id;
+
+    if (!fromBroadcasterId || !toBroadcasterId) {
+      log(`Could not find Twitch channel: ${toChannel}`);
+      return;
+    }
+
+    const raidUrl = new URL("https://api.twitch.tv/helix/raids");
+    raidUrl.searchParams.set("from_broadcaster_id", fromBroadcasterId);
+    raidUrl.searchParams.set("to_broadcaster_id", toBroadcasterId);
+
+    const response = await fetch(raidUrl, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${auth.accessToken}`,
+        "Client-Id": TWITCH_CLIENT_ID
+      }
+    });
+    const body = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+      throw new Error(body.message || "Twitch could not start the raid.");
+    }
+
+    log(`Raid started for ${targetUser.login}. Twitch will show the raid countdown in chat.`);
+  } catch (error) {
+    log(`Raid failed: ${error.message}`);
+  }
+}
+
 ipcMain.on("login-twitch", async () => {
   if (!isClientIdConfigured()) {
     log("ChatMonJA's Twitch Client ID has not been configured in main.js.");
@@ -686,6 +884,23 @@ ipcMain.on("login-twitch", async () => {
   }
 
   await loginWithTwitchDeviceCode();
+});
+
+ipcMain.on("check-updates", async () => {
+  await checkForUpdates(true);
+});
+
+ipcMain.on("open-update-download", async () => {
+  if (!latestUpdate?.downloadUrl) {
+    await checkForUpdates(true);
+  }
+
+  if (latestUpdate?.downloadUrl) {
+    await shell.openExternal(latestUpdate.downloadUrl);
+    log(`Opened update download: ${latestUpdate.assetName || latestUpdate.releaseUrl}`);
+  } else {
+    log("No update download is available right now.");
+  }
 });
 
 ipcMain.on("logout-twitch", async () => {
@@ -724,6 +939,31 @@ ipcMain.on("logout-twitch", async () => {
   saveAuthFile();
   refreshAllLists();
   log("Logged out of Twitch.");
+});
+
+ipcMain.on("save-raid-channel", (_, channel) => {
+  const defaultChannel = normalizeTwitchUsername(channel);
+
+  if (!defaultChannel) {
+    log("Enter a valid Twitch channel name before saving a raid target.");
+    return;
+  }
+
+  raidSettings.defaultChannel = defaultChannel;
+  saveJsonFile(raidSettingsPath, raidSettings);
+  refreshAllLists();
+  log(`Default raid channel saved: ${defaultChannel}`);
+});
+
+ipcMain.on("clear-raid-channel", () => {
+  raidSettings.defaultChannel = "";
+  saveJsonFile(raidSettingsPath, raidSettings);
+  refreshAllLists();
+  log("Default raid channel cleared.");
+});
+
+ipcMain.on("start-raid", async (_, channel) => {
+  await startRaid(channel || raidSettings.defaultChannel);
 });
 
 async function startBot(skipValidation = false) {

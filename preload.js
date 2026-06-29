@@ -4,6 +4,11 @@ const sendChannels = new Set([
   "reset-greetings",
   "login-twitch",
   "logout-twitch",
+  "check-updates",
+  "open-update-download",
+  "save-raid-channel",
+  "clear-raid-channel",
+  "start-raid",
   "add-greeting",
   "edit-greeting",
   "delete-greeting",
@@ -29,11 +34,13 @@ const receiveChannels = new Set([
   "counter",
   "auth-status",
   "login-progress",
+  "update-status",
   "greetings-list",
   "commands-list",
   "special-users-list",
   "day-themes-list",
   "ignored-bots-list",
+  "raid-settings",
   "backup-list"
 ]);
 
