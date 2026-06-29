@@ -63,3 +63,14 @@ test("share defaults contain no creator-specific commands", () => {
   assert.match(main, /formatAvailableCommandList/);
   assert.doesNotMatch(main, /jimmyqja.*response/i);
 });
+
+test("raid out and update checks use official external services safely", () => {
+  const main = fs.readFileSync("main.js", "utf8");
+
+  assert.match(main, /RAID_SCOPE = "channel:manage:raids"/);
+  assert.match(main, /https:\/\/api\.twitch\.tv\/helix\/raids/);
+  assert.match(main, /from_broadcaster_id/);
+  assert.match(main, /to_broadcaster_id/);
+  assert.match(main, /GITHUB_RELEASES_API = "https:\/\/api\.github\.com\/repos\/jimmyqja\/ChatMonJa\/releases\?per_page=10"/);
+  assert.match(main, /shell\.openExternal\(latestUpdate\.downloadUrl\)/);
+});

@@ -1,6 +1,6 @@
 # ChatMonJA
 
-ChatMonJA is a friendly Twitch welcome and community bot for macOS and Windows 11. It automatically connects after Twitch login, welcomes each viewer once per session, and supports custom greetings, chat commands, special users, day themes, ignored bots, backups, and local activity logging.
+ChatMonJA is a friendly Twitch welcome and community bot for macOS and Windows 11. It automatically connects after Twitch login, welcomes each viewer once per session, and supports custom greetings, chat commands, Raid Out, update checks, special users, day themes, ignored bots, backups, and local activity logging.
 
 Created by **Elmore 'JimmyQ' Jamieson** — **@jimmyqja**.
 
@@ -11,6 +11,8 @@ Created by **Elmore 'JimmyQ' Jamieson** — **@jimmyqja**.
 - Rotating greetings with `${username}` and `${dayName}` placeholders
 - Custom `!commands` with permissions, enable/disable controls, anti-spam cooldowns, and a default `!list` command
 - Command-response placeholders for `{username}`, `{channel}`, and `{args}`
+- Raid Out with a saved default Twitch channel or a manual channel while streaming
+- In-app update checks that open the correct GitHub Release download for macOS or Windows
 - Special-user greetings and day themes
 - Ignored-bot list
 - Local backup and restore
@@ -107,7 +109,7 @@ The static download website lives in [docs](docs). It is ready for GitHub Pages 
 
 - Migrate chat transport from Twitch IRC/tmi.js to EventSub WebSocket plus Send Chat Message API
 - Signed universal macOS build
-- Opt-in automatic updates after signed releases are available
+- Signed, silent automatic update installation after signed releases are available
 - Privacy-preserving crash reporting after a collection endpoint and consent UI exist
 
 ## License

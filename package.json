@@ -1,12 +1,12 @@
 {
   "name": "chatmonja",
   "productName": "ChatMonJA",
-  "version": "1.3.3",
+  "version": "1.3.4",
   "description": "A friendly Twitch chat welcome and community bot.",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
     "check": "node --check main.js && node --check preload.js && node --check docs/site.js && node --check scripts/create-icns.js && node --check scripts/create-ico.js && node --check scripts/verify-package.js && zsh -n scripts/package-macos.sh scripts/notarize-macos.sh && npm test",
     "check:windows": "node --check main.js && node --check preload.js && node --check docs/site.js && node --check scripts/create-icns.js && node --check scripts/create-ico.js && node --check scripts/verify-package.js && npm test",
     "icon": "node scripts/create-icns.js",

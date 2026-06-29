@@ -1,6 +1,7 @@
 const test = require("node:test");
 const assert = require("node:assert/strict");
 const {
+  compareVersions,
   createCommandRecord,
   formatCommandResponse,
   formatGreeting,
@@ -8,7 +9,8 @@ const {
   normalizeCommandRoles,
   normalizeCommandName,
   normalizeTwitchUsername,
-  parseCommandMessage
+  parseCommandMessage,
+  selectUpdateAsset
 } = require("../lib/core");
 
 test("formatGreeting replaces every supported placeholder", () => {
@@ -97,4 +99,20 @@ test("command roles support checkbox-style selections", () => {
     }, "command-roles").allowedRoles,
     ["moderator", "broadcaster"]
   );
+});
+
+test("version comparison supports release tags", () => {
+  assert.equal(compareVersions("v1.3.4", "1.3.3"), 1);
+  assert.equal(compareVersions("1.3.4", "1.3.4"), 0);
+  assert.equal(compareVersions("1.3.3", "1.3.4"), -1);
+});
+
+test("update assets select the right package for the platform", () => {
+  const assets = [
+    { name: "ChatMonJA-1.3.4-mac-arm64-unsigned.dmg", browser_download_url: "mac-url" },
+    { name: "ChatMonJA-1.3.4-windows-x64-unsigned.zip", browser_download_url: "win-url" }
+  ];
+
+  assert.equal(selectUpdateAsset(assets, "darwin").browser_download_url, "mac-url");
+  assert.equal(selectUpdateAsset(assets, "win32").browser_download_url, "win-url");
 });

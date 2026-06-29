@@ -18,6 +18,7 @@
 - [ ] Quit and reopen; confirm the saved login reconnects automatically
 - [ ] Confirm Logout disconnects and removes the saved login
 - [ ] Confirm a backup survives app restart and restores greetings and commands correctly
+- [ ] Confirm the update checker reports the expected latest GitHub Release
 
 Example isolated launch for development:
 
@@ -37,6 +38,8 @@ open -na "./out/ChatMonJA-darwin-arm64/ChatMonJA.app" \
 - [ ] Confirm command placeholders, enable/disable, global cooldown, and viewer cooldown work
 - [ ] Confirm moderator-only and broadcaster-only commands reject unauthorized viewers
 - [ ] Confirm an unknown `!command` does not trigger a greeting
+- [ ] Save a default Raid Out channel and confirm Twitch starts the raid countdown
+- [ ] Type a manual Raid Out channel and confirm Twitch starts the raid countdown
 - [ ] Confirm day-theme text appears on the configured day
 - [ ] Leave the app open through a reconnect or network interruption
 - [ ] Review the Activity Log for token, chat, or connection errors

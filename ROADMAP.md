@@ -17,15 +17,15 @@ Planned migration:
 
 This is intentionally a post-v1.3 migration because it changes authentication scopes, message payloads, reconnect behavior, and the core transport simultaneously.
 
-## 2. Automatic updates
+## 2. Signed automatic update installation
 
-Do not enable automatic updates until releases are consistently signed and notarized. The updater must verify signed artifacts and use a stable publishing channel.
+ChatMonJA now includes an in-app update checker that looks at GitHub Releases and opens the correct Mac or Windows download. Do not enable silent update installation until releases are consistently signed and notarized. A full updater must verify signed artifacts and use a stable publishing channel.
 
 Recommended sequence:
 
 1. Publish two manually signed/notarized releases successfully.
 2. Decide whether GitHub Releases will remain the permanent update host.
-3. Add an opt-in update setting and visible release notes.
+3. Add an opt-in silent-update setting and visible release notes.
 4. Test upgrade, downgrade prevention, interrupted download, and rollback behavior.
 
 ## 3. Crash reporting
