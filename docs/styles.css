@@ -514,6 +514,63 @@ footer a {
   font-size: 24px;
 }
 
+.contact-form {
+  display: grid;
+  gap: 18px;
+  margin: 28px 0 8px;
+}
+
+.form-row {
+  display: grid;
+  gap: 8px;
+}
+
+.form-row label {
+  color: var(--text);
+  font-weight: 850;
+}
+
+.form-row input,
+.form-row select,
+.form-row textarea,
+.prepared-message textarea {
+  width: 100%;
+  padding: 13px 14px;
+  background: rgba(0, 0, 0, 0.28);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  font: inherit;
+}
+
+.form-row textarea,
+.prepared-message textarea {
+  resize: vertical;
+}
+
+.form-row input::placeholder,
+.form-row textarea::placeholder {
+  color: #748095;
+}
+
+.form-help {
+  margin: 0;
+  color: #8792a4;
+  font-size: 13px;
+}
+
+.prepared-message {
+  margin-top: 24px;
+  padding: 24px;
+  background: rgba(169, 112, 255, 0.09);
+  border: 1px solid rgba(169, 112, 255, 0.24);
+  border-radius: 20px;
+}
+
+.prepared-message .button {
+  margin-top: 14px;
+}
+
 .contact-bubble {
   position: fixed;
   right: 24px;
