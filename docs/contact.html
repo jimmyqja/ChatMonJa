@@ -3,11 +3,12 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Contact ChatMonJA support by email or Instagram.">
+  <meta name="description" content="Contact ChatMonJA support with privacy-focused tester feedback.">
   <title>Contact — ChatMonJA</title>
   <link rel="icon" type="image/png" href="assets/chatmonja-icon.png">
   <link rel="apple-touch-icon" href="assets/chatmonja-icon.png">
   <link rel="stylesheet" href="styles.css">
+  <script src="site.js" defer></script>
 </head>
 <body>
   <main class="page-shell">
@@ -24,30 +25,54 @@
     <header class="page-header">
       <p class="eyebrow">Get in touch</p>
       <h1>Contact ChatMonJA</h1>
-      <p class="lead">Questions, bug reports, and tester feedback are welcome.</p>
+      <p class="lead">Questions, bug reports, and tester feedback are welcome. Please do not include Twitch passwords, tokens, or private stream keys.</p>
     </header>
 
     <section class="content-card">
-      <div class="contact-grid">
-        <article class="contact-card">
-          <h2>Support</h2>
-          <p><a href="mailto:support@chatmonja.com">support@chatmonja.com</a></p>
-        </article>
-        <article class="contact-card">
-          <h2>Instagram</h2>
-          <p><a href="https://www.instagram.com/jimmyqja/">@jimmyqja</a></p>
-        </article>
+      <p class="callout"><strong>Privacy note:</strong> This static tester site does not send form messages to a server or third-party service. The form below formats your note locally so you can copy it and share it through your preferred private channel.</p>
+      <form class="contact-form" data-contact-form>
+        <div class="form-row">
+          <label for="contact-name">Name or channel</label>
+          <input id="contact-name" name="name" type="text" autocomplete="name" placeholder="Optional">
+        </div>
+        <div class="form-row">
+          <label for="contact-reply">Best way to reply</label>
+          <input id="contact-reply" name="reply" type="text" autocomplete="off" placeholder="Optional">
+        </div>
+        <div class="form-row">
+          <label for="contact-topic">Topic</label>
+          <select id="contact-topic" name="topic">
+            <option>Bug report</option>
+            <option>Install help</option>
+            <option>Feature idea</option>
+            <option>Privacy question</option>
+            <option>Other</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label for="contact-message">Message</label>
+          <textarea id="contact-message" name="message" rows="7" required placeholder="Tell me what happened, what you expected, and whether you are on macOS or Windows 11."></textarea>
+        </div>
+        <button class="button primary" type="submit">Prepare message</button>
+        <p class="form-help">Nothing is uploaded when you press this button.</p>
+      </form>
+      <div class="prepared-message" data-contact-output hidden>
+        <h2>Your message is ready</h2>
+        <p>Copy this note and send it through your preferred private channel. For public updates, you can also follow <a href="https://www.instagram.com/jimmyqja/">@jimmyqja on Instagram</a>.</p>
+        <textarea readonly rows="9" data-contact-output-text></textarea>
+        <button class="button secondary" type="button" data-copy-contact>Copy message</button>
+        <p class="form-help" data-copy-status aria-live="polite"></p>
       </div>
       <h2>When reporting a problem</h2>
       <p>Please include whether you use macOS or Windows 11, what you were doing, what you expected, and what appeared instead. Do not send Twitch passwords or authentication tokens.</p>
     </section>
   </main>
 
-  <a class="contact-bubble" href="mailto:support@chatmonja.com" aria-label="Contact ChatMonJA support">Contact us</a>
+  <a class="contact-bubble" href="contact.html" aria-label="Contact ChatMonJA support">Contact us</a>
 
   <footer>
     <div class="footer-links"><a href="privacy.html">Privacy</a><a href="faq.html">FAQ</a><a href="terms.html">Terms</a><a href="contact.html">Contact</a></div>
-    <p>Created by Elmore “JimmyQ” Jamieson · <a href="mailto:support@chatmonja.com">support@chatmonja.com</a></p>
+    <p>Created by Elmore “JimmyQ” Jamieson · <a href="contact.html">Contact</a></p>
   </footer>
 </body>
 </html>
