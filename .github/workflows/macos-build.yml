@@ -1,0 +1,64 @@
+name: Build macOS package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-macos:
+    name: macOS arm64
+    runs-on: macos-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v5
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run checks
+        run: npm run check
+
+      - name: Build macOS package
+        run: npm run package:mac
+
+      - name: Verify macOS package
+        run: |
+          dmg="$(find out -maxdepth 1 -name 'ChatMonJA-*-mac-arm64-unsigned.dmg' -print -quit)"
+          if [[ -z "$dmg" ]]; then
+            echo "macOS DMG was not created."
+            exit 1
+          fi
+          echo "Found $dmg"
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChatMonJA-${{ github.ref_name }}-mac-arm64-unsigned
+          path: out/ChatMonJA-*-mac-arm64-unsigned.dmg
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Replace macOS release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          dmg="$(find out -maxdepth 1 -name 'ChatMonJA-*-mac-arm64-unsigned.dmg' -print -quit)"
+          gh release view "v$version" --repo "$GITHUB_REPOSITORY" || \
+            gh release create "v$version" --target "$GITHUB_SHA" --title "ChatMonJA $version" --notes "ChatMonJA $version tester release." --prerelease --repo "$GITHUB_REPOSITORY"
+          gh release upload "v$version" "$dmg" --clobber --repo "$GITHUB_REPOSITORY"
