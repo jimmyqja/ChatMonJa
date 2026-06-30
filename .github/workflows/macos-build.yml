@@ -14,7 +14,7 @@ permissions:
 jobs:
   build-macos:
     name: macOS arm64
-    runs-on: macos-latest
+    runs-on: macos-15-arm64
     timeout-minutes: 25
 
     steps:
